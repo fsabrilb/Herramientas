@@ -98,7 +98,7 @@ void Matrix::Print(void){
   }
 }
 /*------------------------------------------------GLOBAL FUNCTIONS------------------------------------------------------------*/
-double TimeTranspose(Matrix &A,int seed){
+double TimeTransposeDirect(Matrix &A,int seed){
   std::chrono::time_point<std::chrono::system_clock> start, end;
   A.FillingRandom(seed);
   start = std::chrono::system_clock::now();  
@@ -107,25 +107,42 @@ double TimeTranspose(Matrix &A,int seed){
   std::chrono::duration<double> elapsed_seconds = end-start;
   return elapsed_seconds.count();
 }
+double TimeTransposeEigen(Eigen::MatrixXd &A,int seed, int size){
+  std::chrono::time_point<std::chrono::system_clock> start, end;
+  A=Eigen::MatrixXd::Random(size, size);
+  start = std::chrono::system_clock::now();  
+  Eigen::MatrixXd AT = A.transpose().eval();
+  end   = std::chrono::system_clock::now();
+  std::chrono::duration<double> elapsed_seconds = end-start;
+  return elapsed_seconds.count();
+}
 /*------------------------------------------------MAIN PROGRAM----------------------------------------------------------------*/
 int main(void){
   int i,N=20; /*Repetitions*/
-  int j,M=10;  /*Matrix Size*/
+  int j,M=11; /*Matrix Size*/
   
-  double sum=0,sum2=0,time=0;
+  double sum1=0,sum2=0,sum12=0,sum22=0,time1=0,time2=0;
   std::cout.precision(16);
   std::cout.setf(std::ios::scientific);
   for(j=0;j<M;j++){
-    Matrix A(std::pow(2,j),std::pow(2,j));
+    Matrix A1(std::pow(2,j),std::pow(2,j));
+    Eigen::MatrixXd A2;
     for(i=0;i<N;i++){ 
-      time=TimeTranspose(A,i);
-      sum+=time;
-      sum2+=time*time;
+      time1=TimeTransposeDirect(A1,i);
+      sum1+=time1;
+      sum12+=time1*time1;
+      time2=TimeTransposeEigen(A2,i,std::pow(2,j));
+      sum2+=time2;
+      sum22+=time2*time2;
     }
-    A.Destroyer();
-    double mean = sum/N;
-    double sigma = std::sqrt(N*std::abs(sum2/N-mean*mean)/(N-1));
-    std::cout<<std::pow(2,j)<<"\t"<<mean<<"\t"<<sigma<<std::endl;
+    A1.Destroyer();
+    double mean1 = sum1/N;
+    double sigma1 = std::sqrt(N*std::abs(sum12/N-mean1*mean1)/(N-1));
+    
+    double mean2 = sum2/N;
+    double sigma2 = std::sqrt(N*std::abs(sum22/N-mean2*mean2)/(N-1));
+    
+    std::cout<<std::pow(2,j)<<"\t"<<mean1<<"\t"<<sigma1<<"\t"<<mean2<<"\t"<<sigma2<<std::endl;
   }
   return 0;
 }
