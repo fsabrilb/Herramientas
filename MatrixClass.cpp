@@ -1,6 +1,9 @@
 #include <iostream>
 #include <stdlib.h>
-
+#include <cmath>
+#include <eigen3/Eigen/Dense>
+#include <chrono>
+/*------------------------------------------------CLASS MATRIX----------------------------------------------------------------*/
 class Matrix{
 private:
   double **M; int N_rows,N_cols;
@@ -17,6 +20,7 @@ public:
   void Transpose(void);
   void Print(void);
 };
+/*------------------------------------------------INSIDE CLASS MATRIX---------------------------------------------------------*/
 /*Build Matrix with parameters m (Number of rows), n (Number of columns)*/
 Matrix::Matrix(int m,int n){
   N_rows=m; N_cols=n;
@@ -58,7 +62,7 @@ Matrix Matrix::operator*(const Matrix &A){
   }
   return R;
 }
-/*-------------------------------------------Matrix Functions-----------------------------------------------------------------*/
+/*------------------------------------------------MATRIX'S FUNCTIONS-----------------------------------------------------------*/
 /*Destroy Matrix*/
 void Matrix::Destroyer(void){
   for(int i=0;i<N_rows;i++){
@@ -93,18 +97,35 @@ void Matrix::Print(void){
     std::cout<<"\n";
   }
 }
-
+/*------------------------------------------------GLOBAL FUNCTIONS------------------------------------------------------------*/
+double TimeTranspose(Matrix &A,int seed){
+  std::chrono::time_point<std::chrono::system_clock> start, end;
+  A.FillingRandom(seed);
+  start = std::chrono::system_clock::now();  
+  A.Transpose();
+  end   = std::chrono::system_clock::now();
+  std::chrono::duration<double> elapsed_seconds = end-start;
+  return elapsed_seconds.count();
+}
+/*------------------------------------------------MAIN PROGRAM----------------------------------------------------------------*/
 int main(void){
-  int M=2,N=2;
-  Matrix A(M,N),B(M,N),C(M,N),D(N,M),E(M,M);
-  A.FillingRandom(1);
-  B.FillingRandom(2);
-  C=A+B; E=A*B;
-  A.Print(); B.Print(); std::cout<<std::endl; E.Print();
-  A.Destroyer();
-  B.Destroyer();
-  C.Destroyer();
-  D.Destroyer();
-  E.Destroyer();
+  int i,N=20; /*Repetitions*/
+  int j,M=10;  /*Matrix Size*/
+  
+  double sum=0,sum2=0,time=0;
+  std::cout.precision(16);
+  std::cout.setf(std::ios::scientific);
+  for(j=0;j<M;j++){
+    Matrix A(std::pow(2,j),std::pow(2,j));
+    for(i=0;i<N;i++){ 
+      time=TimeTranspose(A,i);
+      sum+=time;
+      sum2+=time*time;
+    }
+    A.Destroyer();
+    double mean = sum/N;
+    double sigma = std::sqrt(N*std::abs(sum2/N-mean*mean)/(N-1));
+    std::cout<<std::pow(2,j)<<"\t"<<mean<<"\t"<<sigma<<std::endl;
+  }
   return 0;
 }
