@@ -6,107 +6,93 @@
 /*------------------------------------------------CLASS MATRIX----------------------------------------------------------------*/
 class Matrix{
 private:
-  double **M; int N_rows,N_cols;
+  double *M; int N_rows,N_cols;
 public:
   /*Builder*/
   Matrix(int m,int n);
   /*Operator Overload*/
-  Matrix operator+(const Matrix &A);
-  Matrix operator-(const Matrix &A);
   Matrix operator*(const Matrix &A);
   /*Class Functions*/
   void Destroyer(void);
   void FillingRandom(int seed);
-  void Transpose(void);
+  void TransposeDirect(void);
   void Print(void);
 };
 /*------------------------------------------------INSIDE CLASS MATRIX---------------------------------------------------------*/
+
 /*Build Matrix with parameters m (Number of rows), n (Number of columns)*/
 Matrix::Matrix(int m,int n){
   N_rows=m; N_cols=n;
-  M= new double*[N_rows];
-  for(int i=0;i<N_rows;i++){
-    M[i]=new double[N_cols];
-  }
-}
-/*Define Matrix Sum*/
-Matrix Matrix::operator+(const Matrix &A){
-  Matrix R(N_rows,N_cols);
-  for(int i=0;i<N_rows;i++){
-    for(int j=0;j<N_cols;j++){
-      R.M[i][j]=M[i][j]+A.M[i][j];
-    }
-  }
-  return R;
-}
-/*Define Matrix Subtraction*/
-Matrix Matrix::operator-(const Matrix &A){
-  Matrix R(N_rows,N_cols);
-  for(int i=0;i<N_rows;i++){
-    for(int j=0;j<N_cols;j++){
-      R.M[i][j]=M[i][j]-A.M[i][j];
-    }
-  }
-  return R;
-}
+  M= new double [N_rows*N_cols];
+ }
+
 /*Define Matrix Multiplication*/
 Matrix Matrix::operator*(const Matrix &A){
-  Matrix R(N_rows,A.N_cols);double Sum;
+  Matrix R(N_rows,A.N_cols);
+  double Sum=0;
   for(int i=0;i<N_rows;i++){
     for(int j=0;j<A.N_cols;j++){
       for(int k=0;k<N_cols;k++){
-	Sum += M[i][k]*A.M[k][j];
+	Sum += M[i*N_cols+k]*A.M[k*N_cols+j];
       }
-     R.M[i][j]=Sum;Sum=0;
+     R.M[i*N_cols + j]=Sum;
+     Sum=0;
     }
   }
   return R;
 }
+
 /*------------------------------------------------MATRIX'S FUNCTIONS-----------------------------------------------------------*/
 /*Destroy Matrix*/
 void Matrix::Destroyer(void){
-  for(int i=0;i<N_rows;i++){
-    delete[] M[i];
-  }
   delete[] M;
 }
+
 /*Fill Matrix with random numbers between 0 and 100*/
 void Matrix::FillingRandom(int seed){
   srand(seed+1);
   for(int i=0;i<N_rows;i++){
     for(int j=0;j<N_cols;j++){
-      M[i][j]=drand48()*100;
+      M[i*N_cols + j]=drand48()*100;
     }
   }
 }
+
+
 /*Calculate the transpose of the matrix*/
-void Matrix::Transpose(void){
+void Matrix::TransposeDirect(void){
   Matrix R(N_cols,N_rows); 
   for(int i=0;i<N_cols;i++){
     for(int j=0;j<N_rows;j++){
-      R.M[i][j]=M[j][i];
+      R.M[i*N_cols+j]=M[j*N_cols+i];
     }
   }
 }
+
+
 /*Print matrix*/
 void Matrix::Print(void){
   for(int i=0;i<N_rows;i++){
     for(int j=0;j<N_cols;j++){
-      std::cout<<M[i][j]<<"\t\t";
+      std::cout<<M[i*N_cols +j]<<"\t\t";
     }
     std::cout<<"\n";
   }
 }
+
 /*------------------------------------------------GLOBAL FUNCTIONS------------------------------------------------------------*/
+
 double TimeTransposeDirect(Matrix &A,int seed){
   std::chrono::time_point<std::chrono::system_clock> start, end;
   A.FillingRandom(seed);
   start = std::chrono::system_clock::now();  
-  A.Transpose();
+  A.TransposeDirect();
   end   = std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed_seconds = end-start;
   return elapsed_seconds.count();
 }
+
+
 double TimeMultiplicationDirect(Matrix &A, Matrix &B, int seed){
   std::chrono::time_point<std::chrono::system_clock> start, end;
   A.FillingRandom(seed); B.FillingRandom(seed+1);
@@ -116,6 +102,8 @@ double TimeMultiplicationDirect(Matrix &A, Matrix &B, int seed){
   std::chrono::duration<double> elapsed_seconds = end-start;
   return elapsed_seconds.count();
 }
+
+
 double TimeTransposeEigen(Eigen::MatrixXd &A,int seed, int size){
   std::chrono::time_point<std::chrono::system_clock> start, end;
   srand(seed+1); A=Eigen::MatrixXd::Random(size, size);
@@ -125,6 +113,8 @@ double TimeTransposeEigen(Eigen::MatrixXd &A,int seed, int size){
   std::chrono::duration<double> elapsed_seconds = end-start;
   return elapsed_seconds.count();
 }
+
+
 double TimeMultiplicationEigen(Eigen::MatrixXd &A,Eigen::MatrixXd B, int seed, int size){
   std::chrono::time_point<std::chrono::system_clock> start, end;
   srand(seed+1); A=Eigen::MatrixXd::Random(size, size);
@@ -135,6 +125,7 @@ double TimeMultiplicationEigen(Eigen::MatrixXd &A,Eigen::MatrixXd B, int seed, i
   std::chrono::duration<double> elapsed_seconds = end-start;
   return elapsed_seconds.count();
 }
+
 /*------------------------------------------------MAIN PROGRAM----------------------------------------------------------------*/
 int main(void){
   int i,N=20; /*Repetitions*/
