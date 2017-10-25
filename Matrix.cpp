@@ -92,9 +92,9 @@ Matrix Matrix::MultiplicationBlocking(Matrix &A,int p,int q){
   Matrix R(a,d);double Sum=0;
   for(int i=0;i<a/p;i++){
     for(int j=0;j<d/q;j++){
-      for(int l=0;l<p;l++){
-	for(int m=0;m<q;m++){
-	  for(int k=0;k<d/q;k++){
+      for(int k=0;k<d/q;k++){
+	for(int l=0;l<p;l++){
+	  for(int m=0;m<q;m++){
 	    for(int n=0;n<q;n++){
 	      Sum+= M[l*a+n+i*p*a+k*q]*A.M[n*a+m+j*q+k*p*a];
 	    }
@@ -167,7 +167,7 @@ double TimeMultiplicationBlocking(Matrix &A, Matrix &B, int seed,int s){
 /*------------------------------------------------MAIN PROGRAM----------------------------------------------------------------*/
 int main(void){
   int i,N=20; /*Repetitions*/
-  int j,M=8; /*Matrix Size*/
+  int j,M=9; /*Matrix Size*/
   int k,L=7; /*Blocking Size*/
   
   double sum1=0,sum2=0,sum3=0,sum4=0,sum5=0,sum6=0;
@@ -210,6 +210,7 @@ int main(void){
     std::cout<<std::pow(2,j)<<"\t"<<mean1<<"\t"<<sigma1<<"\t"<<mean2<<"\t"<<sigma2<<"\t"<<mean3<<"\t"<<sigma3
 	     <<"\t"<<mean4<<"\t"<<sigma4<<std::endl;
   }
+  std::cout<<std::endl;
   for(k=0;k<=L;k++){
     Matrix A3(std::pow(2,L),std::pow(2,L));
     Matrix B3(std::pow(2,L),std::pow(2,L));
